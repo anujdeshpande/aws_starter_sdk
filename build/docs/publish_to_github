@@ -1,0 +1,13 @@
+!#/bin/bash
+
+cd $HOME
+  git config --global user.email "travis@travis-ci.org"
+  git config --global user.name "travis-ci"
+  git clone --quiet --branch=master https://${GH_TOKEN}@github.com/marvell-iot/marvell-iot.github.io website-docs > /dev/null
+
+  cd website-docs
+  git rm -rf ./api
+  cp -Rf $HOME/build/docs/html ./api
+  git add -f .
+  git commit -m "Lastest api docs on successful travis build $TRAVIS_BUILD_NUMBER auto-pushed to gh-pages"
+  git push -fq origin master > /dev/null

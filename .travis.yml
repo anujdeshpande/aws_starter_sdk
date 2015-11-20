@@ -1,0 +1,6 @@
+language: c
+env:
+	global:
+	- secure: [to-be-filled]
+after_success:
+- build/docs/publish_to_github	
