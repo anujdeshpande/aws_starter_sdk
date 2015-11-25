@@ -1,7 +1,4 @@
 language: c
-env:
-	global:
-	- secure: [to-be-filled]
 after_success:
 - sudo apt-get install doxygen graphviz
 - make docs
