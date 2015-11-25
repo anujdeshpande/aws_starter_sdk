@@ -1,8 +1,4 @@
-language: c
-install:
-- sudo add-apt-repository -y ppa:terry.guo/gcc-arm-embedded &&
-      sudo apt-get -qq update &&
-      sudo apt-get -qq install gcc-arm-none-eabi
+language: generic
 after_success:
 - sudo apt-get install doxygen graphviz
 - make docs
