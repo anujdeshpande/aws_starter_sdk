@@ -1,6 +1,8 @@
 language: c
 install:
-- sudo apt-get install gcc-arm-none-eabi
+- sudo add-apt-repository -y ppa:terry.guo/gcc-arm-embedded &&
+      sudo apt-get -qq update &&
+      sudo apt-get -qq install gcc-arm-none-eabi
 after_success:
 - sudo apt-get install doxygen graphviz
 - make docs
