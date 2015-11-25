@@ -7,7 +7,7 @@ cd $HOME
 
   cd website-docs
   git rm -rf ./api
-  cp -Rf $HOME/build/docs/html ./api
+  cp -Rf $HOME/aws_starter_sdk/wmsdk/docs/html ./api
   git add -f .
   git commit -m "Lastest api docs on successful travis build $TRAVIS_BUILD_NUMBER auto-pushed to gh-pages"
   git push -fq origin master > /dev/null

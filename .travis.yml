@@ -3,4 +3,6 @@ env:
 	global:
 	- secure: [to-be-filled]
 after_success:
-- build/docs/publish_to_github	
+- sudo apt-get install doxygen graphviz
+- make docs
+- wmsdk/docs/publish_to_github	

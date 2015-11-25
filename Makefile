@@ -24,7 +24,8 @@ endif
 include build/aws_starter_sdk_rules.mk
 #####################
 ##################### Only the Default Targets
-
+docs:
+	doxygen wmsdk/docs/awsdocs.conf
 all: post-build-1
 post-build-1: do_the_build
 do_the_build: pre-build-1
