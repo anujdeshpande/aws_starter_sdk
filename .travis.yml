@@ -1,4 +1,6 @@
 language: c
+install:
+- sudo apt-get install gcc-arm-none-eabi
 after_success:
 - sudo apt-get install doxygen graphviz
 - make docs
