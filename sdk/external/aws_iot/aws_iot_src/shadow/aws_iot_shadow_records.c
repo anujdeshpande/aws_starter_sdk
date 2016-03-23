@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2016 Amazon.com, Inc. or its affiliates. All Rights Reserved.
+ * Copyright 2010-2015 Amazon.com, Inc. or its affiliates. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License").
 
@@ -73,8 +73,8 @@ uint32_t shadowJsonVersionNum = 0;
 bool shadowDiscardOldDeltaFlag = true;
 
 // local helper functions
-static int AckStatusCallback(MQTTCallbackParams params);
-static int shadow_delta_callback(MQTTCallbackParams params);
+static int32_t AckStatusCallback(MQTTCallbackParams params);
+static int32_t  shadow_delta_callback(MQTTCallbackParams params);
 static void topicNameFromThingAndAction(char *pTopic, const char *pThingName, ShadowActions_t action,
 		ShadowAckTopicTypes_t ackType);
 static int16_t getNextFreeIndexOfSubscriptionList(void);
@@ -173,7 +173,7 @@ static bool isAckForMyThingName(const char *pTopicName) {
 	return false;
 }
 
-static int AckStatusCallback(MQTTCallbackParams params) {
+static int32_t  AckStatusCallback(MQTTCallbackParams params) {
 	int32_t tokenCount;
 	int32_t i;
 	void *pJsonHandler = NULL;
@@ -447,7 +447,7 @@ void HandleExpiredResponseCallbacks(void) {
 	}
 }
 
-static int shadow_delta_callback(MQTTCallbackParams params) {
+static int32_t shadow_delta_callback(MQTTCallbackParams params) {
 
 	int32_t tokenCount;
 	uint32_t i = 0;

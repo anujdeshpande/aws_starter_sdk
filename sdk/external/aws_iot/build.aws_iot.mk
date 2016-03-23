@@ -1,4 +1,4 @@
-# Copyright (C) 2008-2016, Marvell International Ltd.
+# Copyright (C) 2008-2015, Marvell International Ltd.
 # All Rights Reserved.
 
 libs-y += libaws_iot

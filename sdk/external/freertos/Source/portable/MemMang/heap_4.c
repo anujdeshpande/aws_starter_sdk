@@ -105,6 +105,7 @@ task.h is included from an application file. */
 #define DTRACE(...)
 #endif /* DEBUG_HEAP */
 
+#undef ASSERT
 #define ASSERT(_cond_) \
 	if(!(_cond_)) {				\
 		DTRACE("ASSERT: %s: %d : %s\n\r", __FILE__, __LINE__, #_cond_); \
@@ -520,7 +521,9 @@ int prvHeapAddMemBank(char *chunk_start, size_t size)
 	lastHeapAddress = (size_t)(chunk_start + size);
 	xFreeBytesRemaining += size;
 	configTOTAL_HEAP_SIZE += size;
+#ifdef FREERTOS_ENABLE_MALLOC_STATS
 	hI.heapSize += size;
+#endif // FREERTOS_ENABLE_MALLOC_STATS
 	xEnd.xBlockSize = configTOTAL_HEAP_SIZE;
 
 	/* Create a new block at the start of the chunk_start */
@@ -686,6 +689,13 @@ void *pvPortMalloc( size_t xWantedSize )
 		randomizeAreaData((unsigned char*)pvReturn, 
 				  BLOCK_SIZE( pxBlock ) - heapSTRUCT_SIZE);
 		post_alloc_hook( pvReturn );
+
+#ifdef FREERTOS_ENABLE_MALLOC_STATS
+		if ((configTOTAL_HEAP_SIZE - xFreeBytesRemaining) > hI.peakHeapUsage) {
+			hI.peakHeapUsage =
+				(configTOTAL_HEAP_SIZE - xFreeBytesRemaining);
+		}
+#endif
 	}
 	
 	return pvReturn;

@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2016 Amazon.com, Inc. or its affiliates. All Rights Reserved.
+ * Copyright 2010-2015 Amazon.com, Inc. or its affiliates. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License").
  * You may not use this file except in compliance with the License.
@@ -113,7 +113,9 @@ IoT_Error_t aws_iot_shadow_yield(MQTTClient_t *pClient, int timeout) {
 }
 
 IoT_Error_t aws_iot_shadow_disconnect(MQTTClient_t *pClient) {
-	return pClient->disconnect();
+	if (pClient->disconnect != NULL)
+		return pClient->disconnect();
+	return NONE_ERROR;
 }
 
 IoT_Error_t aws_iot_shadow_update(MQTTClient_t *pClient, const char *pThingName, char *pJsonString,

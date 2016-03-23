@@ -3,7 +3,14 @@
 
 libs-y += liblwip
 
-liblwip-cflags-y += -Wno-address
+liblwip-cflags-y := -Wno-address
+
+liblwip-cflags-y+= -DMAX_SOCKETS_TCP=$(CONFIG_MAX_SOCKETS_TCP)
+liblwip-cflags-y+= -DMAX_LISTENING_SOCKETS_TCP=$(CONFIG_MAX_LISTENING_SOCKETS_TCP)
+liblwip-cflags-y+= -DMAX_SOCKETS_UDP=$(CONFIG_MAX_SOCKETS_UDP)
+liblwip-cflags-y+= -DTCP_SND_BUF_COUNT=$(CONFIG_TCP_SND_BUF_COUNT)
+liblwip-cflags-y+= -DTCPIP_STACK_TX_HEAP_SIZE=$(CONFIG_TCPIP_STACK_TX_HEAP_SIZE)
+
 
 liblwip-objs-y :=  \
 		src/api/api_lib.c \

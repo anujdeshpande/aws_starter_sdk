@@ -927,6 +927,30 @@ lwip_recv(int s, void *mem, size_t len, int flags)
   return lwip_recvfrom(s, mem, len, flags, NULL, NULL);
 }
 
+int lwip_get_sock_retry_count(int s)
+{
+	struct lwip_sock *sock;
+	int retry_count = -1;
+	sock = get_socket(s);
+	if (sock) {
+		if (sock->conn->pcb.tcp)
+			retry_count = sock->conn->pcb.tcp->nrtx;
+	}
+	return retry_count;
+}
+
+int lwip_get_sock_snd_buf(int s)
+{
+	struct lwip_sock *sock;
+	int snd_buf = -1;
+	sock = get_socket(s);
+	if (sock) {
+		if (sock->conn->pcb.tcp)
+			snd_buf = sock->conn->pcb.tcp->snd_buf;
+	}
+	return snd_buf;
+}
+
 int
 lwip_send(int s, const void *data, size_t size, int flags)
 {

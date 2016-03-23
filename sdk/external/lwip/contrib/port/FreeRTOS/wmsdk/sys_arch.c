@@ -519,7 +519,7 @@ int result;
 
    if ( s_nextthread < SYS_THREAD_MAX )
    {
-      result = xTaskCreate( thread, ( signed portCHAR * ) name, stacksize, arg, prio, &CreatedTask );
+      result = xTaskCreate( thread, name, stacksize, arg, prio, &CreatedTask );
 
 	   if(result == pdPASS)
 	   {

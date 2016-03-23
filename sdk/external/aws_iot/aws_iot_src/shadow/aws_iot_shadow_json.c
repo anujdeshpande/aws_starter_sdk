@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2016 Amazon.com, Inc. or its affiliates. All Rights Reserved.
+ * Copyright 2010-2015 Amazon.com, Inc. or its affiliates. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License").
  * You may not use this file except in compliance with the License.
@@ -202,8 +202,8 @@ IoT_Error_t aws_iot_shadow_add_reported(char *pJsonDocument, size_t maxSizeOfJso
 
 int32_t FillWithClientTokenSize(char *pBufferToBeUpdatedWithClientToken, size_t maxSizeOfJsonDocument) {
 	int32_t snPrintfReturn;
-	snPrintfReturn = snprintf(pBufferToBeUpdatedWithClientToken, maxSizeOfJsonDocument, "%s-%d", AWS_IOT_MQTT_CLIENT_ID,
-			clientTokenNum++);
+	snPrintfReturn = snprintf(pBufferToBeUpdatedWithClientToken, maxSizeOfJsonDocument, "%s-%u", AWS_IOT_MQTT_CLIENT_ID,
+			(unsigned int)clientTokenNum++);
 
 	return snPrintfReturn;
 }
@@ -268,7 +268,7 @@ IoT_Error_t aws_iot_finalize_json_document(char *pJsonDocument, size_t maxSizeOf
 }
 
 void FillWithClientToken(char *pBufferToBeUpdatedWithClientToken) {
-	sprintf(pBufferToBeUpdatedWithClientToken, "%s-%d", AWS_IOT_MQTT_CLIENT_ID, clientTokenNum++);
+	sprintf(pBufferToBeUpdatedWithClientToken, "%s-%u", AWS_IOT_MQTT_CLIENT_ID, (unsigned int)clientTokenNum++);
 }
 
 static IoT_Error_t convertDataToString(char *pStringBuffer, size_t maxSizoStringBuffer, JsonPrimitiveType type,

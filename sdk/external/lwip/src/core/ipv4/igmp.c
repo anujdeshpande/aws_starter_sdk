@@ -102,7 +102,6 @@ Steve Reynolds
 #define IGMP_MINLEN                    8
 #define ROUTER_ALERT                   0x9404U
 #define ROUTER_ALERTLEN                4
-#define IGMP_TIMER_OFFSET		100
 
 /*
  * IGMP message types, including version number.
@@ -675,7 +674,7 @@ void
 igmp_tmr(void)
 {
   struct igmp_group *group = igmp_group_list;
-  unsigned long curr_ticks = sys_arch_get_os_ticks() / IGMP_TIMER_OFFSET;
+  unsigned long curr_ticks = sys_arch_get_os_ticks();
   while (group != NULL) {
     if (group->timer <= curr_ticks
 	&& group->timer != 0) {
@@ -688,8 +687,7 @@ igmp_tmr(void)
   struct igmp_group* min_timeout_grp = lwip_get_min_timeout_grp();
   if (min_timeout_grp &&
       (min_timeout_grp->timer)  >  curr_ticks)  {
-	unsigned int new_timer_val =
-		((min_timeout_grp->timer) - curr_ticks) * IGMP_TIMER_OFFSET;
+	unsigned int new_timer_val = min_timeout_grp->timer - curr_ticks;
 	sys_timeout(new_timer_val, igmp_timer, NULL);
    }
 }
@@ -746,25 +744,25 @@ igmp_start_timer(struct igmp_group *group, u8_t max_time)
     max_time = 1;
   }
   /* ensure the random value is > 0 */
-  group->timer = (LWIP_RAND() % max_time);
+  /* Get group timer value in milliseconds */
+  group->timer = (LWIP_RAND() % max_time) * IGMP_TMR_INTERVAL;
   unsigned long curr_ticks = sys_arch_get_os_ticks();
-  group->timer = group->timer + curr_ticks / IGMP_TIMER_OFFSET;
+  group->timer = group->timer + curr_ticks;
 
   struct igmp_group* min_timeout_grp = lwip_get_min_timeout_grp();
   if (min_timeout_grp &&
-	(min_timeout_grp->timer) > curr_ticks * IGMP_TIMER_OFFSET)  {
+	(min_timeout_grp->timer >= curr_ticks))  {
      if (group->timer <= min_timeout_grp->timer) {
-	unsigned int new_timer_val = (min_timeout_grp->timer)
-			 - curr_ticks * IGMP_TIMER_OFFSET;
+	unsigned int new_timer_val = min_timeout_grp->timer - curr_ticks;
         sys_untimeout(igmp_timer, NULL);
 	sys_timeout(new_timer_val, igmp_timer, NULL);
      }
   }
 #else /* LWIP_RAND */
   /* ATTENTION: use this only if absolutely necessary! */
-  group->timer = max_time / 2;
+  group->timer = (max_time * IGMP_TMR_INTERVAL) / 2;
   if (group->timer == 0) {
-    group->timer = 1;
+    group->timer = IGMP_TMR_INTERVAL;
   }
 #endif /* LWIP_RAND */
 }
@@ -780,7 +778,7 @@ igmp_delaying_member(struct igmp_group *group, u8_t maxresp)
 {
   if ((group->group_state == IGMP_GROUP_IDLE_MEMBER) ||
      ((group->group_state == IGMP_GROUP_DELAYING_MEMBER) &&
-      ((group->timer == 0) || (maxresp < group->timer)))) {
+      ((group->timer == 0) || ((maxresp * IGMP_TMR_INTERVAL) < group->timer)))) {
     igmp_start_timer(group, maxresp);
     group->group_state = IGMP_GROUP_DELAYING_MEMBER;
   }

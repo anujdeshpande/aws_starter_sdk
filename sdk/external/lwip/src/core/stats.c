@@ -65,4 +65,13 @@ void stats_init(void)
 #endif /* LWIP_DEBUG */
 }
 
+int lwip_get_total_heap(void)
+{
+	return lwip_stats.mem.avail;
+}
+
+int lwip_get_current_heap_use(void)
+{
+	return lwip_stats.mem.used;
+}
 #endif /* LWIP_STATS */

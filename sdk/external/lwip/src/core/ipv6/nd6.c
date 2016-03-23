@@ -446,12 +446,12 @@ nd6_input(struct pbuf *p, struct netif *inp)
       {
         struct mtu_option * mtu_opt;
         mtu_opt = (struct mtu_option *)buffer;
-        if (mtu_opt->mtu >= 1280) {
+	if (htonl(mtu_opt->mtu) >= 1280) {
 #if LWIP_ND6_ALLOW_RA_UPDATES
-          inp->mtu = mtu_opt->mtu;
+		inp->mtu = (u16_t)htonl(mtu_opt->mtu);
 #endif /* LWIP_ND6_ALLOW_RA_UPDATES */
-        }
-        break;
+	}
+	break;
       }
       case ND6_OPTION_TYPE_PREFIX_INFO:
       {
