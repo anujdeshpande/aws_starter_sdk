@@ -3,19 +3,12 @@
  *  All Rights Reserved.
  */
 /*
- * AWS Starter Demo Application
+ * Connected Maraca Application
  *
  * Summary:
  *
- * Application demonstrates the bi-directional communication with the Thing
- * Shadow over MQTT. Using the web application, Configure the device to thing
- * shadow or any other shadow using its Thing name.
- *
- * Device publishes the changed state of the pushbuttons pb and pb_lambda on
- * Thing Shadow. Also it subscribes to the Thing Shadow delta and when state
- * change of LED is requested from AWS IOT web console, it toggles the LED
- * state.
- *
+ * Device publishes the changed state of the maraca on
+ * Thing Shadow.
  * The serial console is set on UART-0.
  *
  * A serial terminal program like HyperTerminal, putty, or
@@ -76,6 +69,7 @@ static char url[128];
 #define VAR_BUTTON_B_PROPERTY   "pb_lambda"
 #define RESET_TO_FACTORY_TIMEOUT 5000
 #define BUFSIZE                  128
+#define THRESHOLD_ACC            50
 
 /* callback function invoked on reset to factory */
 static void device_reset_to_factory_cb()
@@ -267,33 +261,38 @@ int aws_publish_property_state(ShadowParameters_t *sp)
 	int ret = WM_SUCCESS;
 
 	memset(state, 0, BUFSIZE);
-	if (pushbutton_a_count_prev != pushbutton_a_count) {
-		snprintf(buf_out, BUFSIZE, ",\"%s\":%lu", VAR_BUTTON_A_PROPERTY,
-			 pushbutton_a_count);
-		strcat(state, buf_out);
-		pushbutton_a_count_prev = pushbutton_a_count;
-	}
-	if (pushbutton_b_count_prev != pushbutton_b_count) {
-		snprintf(buf_out, BUFSIZE, ",\"%s\":%lu", VAR_BUTTON_B_PROPERTY,
-			 pushbutton_b_count);
-		strcat(state, buf_out);
-		pushbutton_b_count_prev = pushbutton_b_count;
-	}
+	/* if (pushbutton_a_count_prev != pushbutton_a_count) { */
+	/* 	snprintf(buf_out, BUFSIZE, ",\"%s\":%lu", VAR_BUTTON_A_PROPERTY, */
+	/* 		 pushbutton_a_count); */
+	/* 	strcat(state, buf_out); */
+	/* 	pushbutton_a_count_prev = pushbutton_a_count; */
+	/* } */
+	/* if (pushbutton_b_count_prev != pushbutton_b_count) { */
+	/* 	snprintf(buf_out, BUFSIZE, ",\"%s\":%lu", VAR_BUTTON_B_PROPERTY, */
+	/* 		 pushbutton_b_count); */
+	/* 	strcat(state, buf_out); */
+	/* 	pushbutton_b_count_prev = pushbutton_b_count; */
+	/* } */
 	/* On receiving led state change notification from cloud, change
 	 * the state of the led on the board in callback function and
 	 * publish updated state on configured topic.
 	 */
-	if (led_1_state_prev != led_1_state) {
-		snprintf(buf_out, BUFSIZE, ",\"%s\":%lu", VAR_LED_1_PROPERTY,
-			 led_1_state);
-		strcat(state, buf_out);
-		led_1_state_prev = led_1_state;
-	}
+	/* if (led_1_state_prev != led_1_state) { */
+	/* 	snprintf(buf_out, BUFSIZE, ",\"%s\":%lu", VAR_LED_1_PROPERTY, */
+	/* 		 led_1_state); */
+	/* 	strcat(state, buf_out); */
+	/* 	led_1_state_prev = led_1_state; */
+	/* } */
+	
+	/* Get sensor readings, compare with previous values, if delta is greater
+	   than THRESHOLD_ACC, publish the state
+	*/
 
-	if (*ptr == ',')
-		ptr++;
+	/* if (*ptr == ',') */
+	/* 	ptr++; */
+
 	if (strlen(state)) {
-		snprintf(buf_out, BUFSIZE, "{\"state\": {\"reported\":{%s}}}",
+		snprintf(buf_out, BUFSIZE, "{ \"device_id\": DEVICE_ID,\"time\":\"\",\"device\":\"marvelliot\",\"sensors\":[{\"telemetryData\": {\"xval\":%s,\"yval\":0,\"zval\":-0}}]}",
 			 ptr);
 		wmprintf("Publishing '%s' to AWS\r\n", buf_out);
 
@@ -310,10 +309,11 @@ int aws_publish_property_state(ShadowParameters_t *sp)
 }
 
 /* application thread */
-static void aws_starter_demo(os_thread_arg_t data)
+static void connected_maraca(os_thread_arg_t data)
 {
-	int led_state = 0, ret;
-	jsonStruct_t led_indicator;
+        /* int led_state = 0; */
+        int ret;
+	/* jsonStruct_t led_indicator; */
 	ShadowParameters_t sp;
 
 	aws_iot_mqtt_init(&mqtt_client);
@@ -341,17 +341,17 @@ static void aws_starter_demo(os_thread_arg_t data)
 	wmprintf("Cloud Started\r\n");
 
 	/* configures property of a thing */
-	led_indicator.cb = led_indicator_cb;
-	led_indicator.pData = &led_state;
-	led_indicator.pKey = "led";
-	led_indicator.type = SHADOW_JSON_INT8;
+	/* led_indicator.cb = led_indicator_cb; */
+	/* led_indicator.pData = &led_state; */
+	/* led_indicator.pKey = "led"; */
+	/* led_indicator.type = SHADOW_JSON_INT8; */
 
-	/* subscribes to delta topic of the configured thing */
-	ret = aws_iot_shadow_register_delta(&mqtt_client, &led_indicator);
-	if (ret != WM_SUCCESS) {
-		wmprintf("Failed to subscribe to shadow delta %d\r\n", ret);
-		goto out;
-	}
+	/* /\* subscribes to delta topic of the configured thing *\/ */
+	/* ret = aws_iot_shadow_register_delta(&mqtt_client, &led_indicator); */
+	/* if (ret != WM_SUCCESS) { */
+	/* 	wmprintf("Failed to subscribe to shadow delta %d\r\n", ret); */
+	/* 	goto out; */
+	/* } */
 
 	/* creates a thread which will wait for incoming messages, ensuring the
 	 * connection is kept alive with the AWS Service
@@ -424,9 +424,9 @@ void wlan_event_normal_connected(void *data)
 			/* thread handle */
 			&aws_starter_thread,
 			/* thread name */
-			"awsStarterDemo",
+			"connectedMaraca",
 			/* entry function */
-			aws_starter_demo,
+			connected_maraca,
 			/* argument */
 			0,
 			/* stack */
@@ -459,7 +459,7 @@ int main()
 	}
 
 	wmprintf("Build Time: " __DATE__ " " __TIME__ "\r\n");
-	wmprintf("\r\n#### AWS STARTER DEMO ####\r\n\r\n");
+	wmprintf("\r\n#### CONNECTED MARACA DEMO ####\r\n\r\n");
 
 	/* configure pushbutton on device to perform reset to factory */
 	configure_reset_to_factory();
