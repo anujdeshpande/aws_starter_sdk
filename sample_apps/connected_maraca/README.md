@@ -7,6 +7,22 @@ the [Marvell IoT Starter Kit](http://www.amazon.com/Globalscale-MW302-IoT-Starte
 
 ## Step 1 - Wire hardware
 
+The digital accelerometer that we will be using works over the I2C protocol. We are going to connect it to I2C0 bus on the Marvell IoT starter kit
+
+![](https://raw.githubusercontent.com/marvell-iot/aws_starter_sdk_wiki_images/master/PinMap.png)
+
+The sensor has 4 pins -
+
+| Sensor | IoT Starter Kit | Wire color
+|:----|:----:|----:|
+| GND | GND | Dark Green
+| Vcc | +3.3V | Red
+| SDA | IO_04 | Light Green
+| SCL | IO_05 | Blue
+
+Here's a picture of the connections :
+![Connections](./screenshots/Wires.jpg)
+
 ## Step 2 - Get latest blob (includes wifi firmware and bootloader)
 Flash the latest blob on the Marvell board.
 
@@ -61,6 +77,4 @@ browser.
 
 ## Step 8
 Try it out !
-Shake the Maraca and the LED should light up.
-
-The [output LED](https://raw.githubusercontent.com/marvell-iot/aws_starter_sdk_wiki_images/master/RD-88MW302-A0-V2%20wo%20shield.jpeg) lighting up indicates that the Maraca is publishing it's changed state to AWS IoT.
+Shake the Maraca and the changed state should be updated on AWS IoT.
