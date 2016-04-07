@@ -21,14 +21,26 @@
 #include <wmsdk.h>
 #include <led_indicator.h>
 #include <board.h>
-#include <push_button.h>
 #include <aws_iot_mqtt_interface.h>
 #include <aws_iot_shadow_interface.h>
 #include <aws_utils.h>
+#include <mdev_gpio.h>
+#include <mdev_pinmux.h>
+#include <lowlevel_drivers.h>
+#include <wm_os.h>
+#include <mdev_i2c.h>
+#include <push_button.h>
+
 /* configuration parameters */
 #include <aws_iot_config.h>
 
 #include "aws_starter_root_ca_cert.h"
+
+
+#include "sensor_acc_drv.h"
+#include "sensor_acc_drv.c"
+#include "sensor_drv.h"
+#include "sensor_drv.c"
 
 enum state {
 	AWS_CONNECTED = 1,
@@ -39,10 +51,6 @@ enum state {
 /*-----------------------Global declarations----------------------*/
 
 /* These hold each pushbutton's count, updated in the callback ISR */
-static volatile uint32_t pushbutton_a_count;
-static volatile uint32_t pushbutton_a_count_prev = -1;
-static volatile uint32_t pushbutton_b_count;
-static volatile uint32_t pushbutton_b_count_prev = -1;
 static volatile uint32_t led_1_state;
 static volatile uint32_t led_1_state_prev = -1;
 
@@ -65,11 +73,10 @@ static char url[128];
 #define MICRO_AP_PASSPHRASE          "marvellwm"
 #define AMAZON_ACTION_BUF_SIZE  100
 #define VAR_LED_1_PROPERTY      "led"
-#define VAR_BUTTON_A_PROPERTY   "pb"
-#define VAR_BUTTON_B_PROPERTY   "pb_lambda"
 #define RESET_TO_FACTORY_TIMEOUT 5000
-#define BUFSIZE                  128
+#define BUFSIZE                  200
 #define THRESHOLD_ACC            50
+
 
 /* callback function invoked on reset to factory */
 static void device_reset_to_factory_cb()
@@ -94,43 +101,13 @@ static void configure_reset_to_factory()
 			   RESET_TO_FACTORY_TIMEOUT, 0, NULL);
 }
 
-/* callback function invoked when pushbutton_a is pressed */
-static void pushbutton_a_cb()
-{
-	if (pushbutton_a_count_prev == pushbutton_a_count)
-		pushbutton_a_count++;
-}
-
-/* callback function invoked when pushbutton_b is pressed */
-static void pushbutton_b_cb()
-{
-	if (pushbutton_b_count_prev == pushbutton_b_count)
-		pushbutton_b_count++;
-}
 
 /* Configure led and pushbuttons with callback functions */
 static void configure_led_and_button()
 {
-	/* respective GPIO pins for pushbuttons and leds are defined in
-	 * board file.
-	 */
-	input_gpio_cfg_t pushbutton_a = {
-		.gpio = board_button_1(),
-		.type = GPIO_ACTIVE_LOW
-	};
-	input_gpio_cfg_t pushbutton_b = {
-		.gpio = board_button_2(),
-		.type = GPIO_ACTIVE_LOW
-	};
 
 	led_1 = board_led_1();
 
-	push_button_set_cb(pushbutton_a,
-			   pushbutton_a_cb,
-			   100, 0, NULL);
-	push_button_set_cb(pushbutton_b,
-			   pushbutton_b_cb,
-			   100, 0, NULL);
 }
 
 static char client_cert_buffer[AWS_PUB_CERT_SIZE];
@@ -245,7 +222,7 @@ void led_indicator_cb(const char *p_json_string,
 		if (state) {
 			led_on(led_1);
 			led_1_state = 1;
-		} else {
+	} else {
 			led_off(led_1);
 			led_1_state = 0;
 		}
@@ -261,59 +238,41 @@ int aws_publish_property_state(ShadowParameters_t *sp)
 	int ret = WM_SUCCESS;
 
 	memset(state, 0, BUFSIZE);
-	/* if (pushbutton_a_count_prev != pushbutton_a_count) { */
-	/* 	snprintf(buf_out, BUFSIZE, ",\"%s\":%lu", VAR_BUTTON_A_PROPERTY, */
-	/* 		 pushbutton_a_count); */
-	/* 	strcat(state, buf_out); */
-	/* 	pushbutton_a_count_prev = pushbutton_a_count; */
-	/* } */
-	/* if (pushbutton_b_count_prev != pushbutton_b_count) { */
-	/* 	snprintf(buf_out, BUFSIZE, ",\"%s\":%lu", VAR_BUTTON_B_PROPERTY, */
-	/* 		 pushbutton_b_count); */
-	/* 	strcat(state, buf_out); */
-	/* 	pushbutton_b_count_prev = pushbutton_b_count; */
-	/* } */
-	/* On receiving led state change notification from cloud, change
-	 * the state of the led on the board in callback function and
-	 * publish updated state on configured topic.
-	 */
-	/* if (led_1_state_prev != led_1_state) { */
-	/* 	snprintf(buf_out, BUFSIZE, ",\"%s\":%lu", VAR_LED_1_PROPERTY, */
-	/* 		 led_1_state); */
-	/* 	strcat(state, buf_out); */
-	/* 	led_1_state_prev = led_1_state; */
-	/* } */
 	
 	/* Get sensor readings, compare with previous values, if delta is greater
 	   than THRESHOLD_ACC, publish the state
 	*/
+	/* Construct JSON object for sensor events */
+	sensor_msg_construct(state, buf_out, BUFSIZE);
 
-	/* if (*ptr == ',') */
-	/* 	ptr++; */
-
-	if (strlen(state)) {
-		snprintf(buf_out, BUFSIZE, "{ \"device_id\": DEVICE_ID,\"time\":\"\",\"device\":\"marvelliot\",\"sensors\":[{\"telemetryData\": {\"xval\":%s,\"yval\":0,\"zval\":-0}}]}",
-			 ptr);
-		wmprintf("Publishing '%s' to AWS\r\n", buf_out);
-
-		/* publish incremented value on pushbutton press on
-		 * configured thing */
-		ret = aws_iot_shadow_update(&mqtt_client,
-					    sp->pMyThingName,
-					    buf_out,
-					    shadow_update_status_cb,
-					    NULL,
-					    10, true);
-	}
+	if (*ptr == ',')
+		ptr++;
+	 if (strlen(state)) { 
+	
+	snprintf(buf_out, BUFSIZE, "{\"state\":  {\"reported\":{\"device_id\": \"mrvlmw302\",\"time\":\"\",\"device\":\"marvelliot\",\"sensors\":[{\"telemetryData\": {%s}}]}}}", ptr);
+	
+	wmprintf("\r\n%s", buf_out);
+	
+	/* publish incremented value on pushbutton press on
+	 * configured thing */
+	ret = aws_iot_shadow_update(&mqtt_client,
+				    sp->pMyThingName,
+				    buf_out,
+				    shadow_update_status_cb,
+				    NULL,
+				    10, true);
+	
+	/*os_thread_sleep(10000);*/
+	 } 
 	return ret;
 }
 
 /* application thread */
 static void connected_maraca(os_thread_arg_t data)
 {
-        /* int led_state = 0; */
+        int led_state = 0;
         int ret;
-	/* jsonStruct_t led_indicator; */
+	jsonStruct_t led_indicator;
 	ShadowParameters_t sp;
 
 	aws_iot_mqtt_init(&mqtt_client);
@@ -341,17 +300,17 @@ static void connected_maraca(os_thread_arg_t data)
 	wmprintf("Cloud Started\r\n");
 
 	/* configures property of a thing */
-	/* led_indicator.cb = led_indicator_cb; */
-	/* led_indicator.pData = &led_state; */
-	/* led_indicator.pKey = "led"; */
-	/* led_indicator.type = SHADOW_JSON_INT8; */
+	led_indicator.cb = led_indicator_cb;
+	led_indicator.pData = &led_state;
+	led_indicator.pKey = "led";
+	led_indicator.type = SHADOW_JSON_INT8;
 
-	/* /\* subscribes to delta topic of the configured thing *\/ */
-	/* ret = aws_iot_shadow_register_delta(&mqtt_client, &led_indicator); */
-	/* if (ret != WM_SUCCESS) { */
-	/* 	wmprintf("Failed to subscribe to shadow delta %d\r\n", ret); */
-	/* 	goto out; */
-	/* } */
+	/* subscribes to delta topic of the configured thing */
+	ret = aws_iot_shadow_register_delta(&mqtt_client, &led_indicator);
+	if (ret != WM_SUCCESS) {
+		wmprintf("Failed to subscribe to shadow delta %d\r\n", ret);
+		goto out;
+	}
 
 	/* creates a thread which will wait for incoming messages, ensuring the
 	 * connection is kept alive with the AWS Service
@@ -378,8 +337,9 @@ static void connected_maraca(os_thread_arg_t data)
 			wmprintf("Sending property failed\r\n");
 
 		os_thread_sleep(1000);
+		sensor_inputs_scan();
 	}
-
+	
 	ret = aws_iot_shadow_disconnect(&mqtt_client);
 	if (NONE_ERROR != ret) {
 		wmprintf("aws iot shadow error %d\r\n", ret);
@@ -452,14 +412,18 @@ int main()
 		return -WM_FAIL;
 	}
 
+	wmprintf("Build Time: " __DATE__ " " __TIME__ "\r\n");
+	wmprintf("\r\n#### CONNECTED MARACA DEMO ####\r\n\r\n");
+
 	/* initialize gpio driver */
 	if (gpio_drv_init() != WM_SUCCESS) {
 		wmprintf("gpio_drv_init failed\r\n");
 		return -WM_FAIL;
 	}
-
-	wmprintf("Build Time: " __DATE__ " " __TIME__ "\r\n");
-	wmprintf("\r\n#### CONNECTED MARACA DEMO ####\r\n\r\n");
+	int retval = sensor_drv_init();
+	if (retval == WM_SUCCESS) {
+	  acc_sensor_event_register();
+	}
 
 	/* configure pushbutton on device to perform reset to factory */
 	configure_reset_to_factory();
