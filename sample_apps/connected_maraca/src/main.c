@@ -61,7 +61,7 @@ static enum state device_state;
 /* Thread handle */
 static os_thread_t aws_starter_thread;
 /* Buffer to be used as stack */
-static os_thread_stack_define(aws_starter_stack, 8 * 1024);
+static os_thread_stack_define(aws_starter_stack, 10 * 1024);
 /* Thread handle */
 static os_thread_t aws_shadow_yield_thread;
 /* Buffer to be used as stack */
@@ -76,7 +76,6 @@ static char url[128];
 #define RESET_TO_FACTORY_TIMEOUT 5000
 #define BUFSIZE                  200
 #define THRESHOLD_ACC            50
-
 
 /* callback function invoked on reset to factory */
 static void device_reset_to_factory_cb()
@@ -248,19 +247,27 @@ int aws_publish_property_state(ShadowParameters_t *sp)
 	if (*ptr == ',')
 		ptr++;
 	 if (strlen(state)) { 
-	
+
 	snprintf(buf_out, BUFSIZE, "{\"state\":  {\"reported\":{\"device_id\": \"mrvlmw302\",\"time\":\"\",\"device\":\"marvelliot\",\"sensors\":[{\"telemetryData\": {%s}}]}}}", ptr);
+
+	MQTTPublishParams cmaraca;
 	
+	memset(&cmaraca, 0, sizeof(cmaraca));   
+	cmaraca.pTopic = "connected-maraca";
+	cmaraca.MessageParams.pPayload = buf_out;
+	cmaraca.MessageParams.PayloadLen = strlen(buf_out);
+	aws_iot_mqtt_publish(&cmaraca);
+
 	wmprintf("\r\n%s", buf_out);
 	
 	/* publish incremented value on pushbutton press on
 	 * configured thing */
-	ret = aws_iot_shadow_update(&mqtt_client,
-				    sp->pMyThingName,
-				    buf_out,
-				    shadow_update_status_cb,
-				    NULL,
-				    10, true);
+	/* ret = aws_iot_shadow_update(&mqtt_client, */
+	/* 			    sp->pMyThingName, */
+	/* 			    buf_out, */
+	/* 			    shadow_update_status_cb, */
+	/* 			    NULL, */
+	/* 			    10, true); */
 	
 	/*os_thread_sleep(10000);*/
 	 } 

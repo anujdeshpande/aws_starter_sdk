@@ -55,26 +55,16 @@ python sdk/tools/OpenOCD/flash.py -r
 You can also reset the board by pressing the reset button on the top left
 of the board.
 
-## Step 6 - Configure cloud
-Generate keys on AWS IoT and download them
-
-- Create a new thing
-![new-thing](./screenshots/1-Create-Thing.png)
-
-- View the thing and select Connect a device
-![view-thing](./screenshots/2-ConnectDevice.png)
-
-- Pick Embedded C from the radio buttons
-![select-c](./screenshots/3-EmbeddedC.png)
-
-- Download the Private Key and certificate.
-![get-keys](./screenshots/4-DownloadKeys.png)
-
-## Step 7 - Upload keys to board
+## Step 6 - Upload keys to board
 Upload keys generated from your AWS IoT dashboard to the device by connecting to
 the micro AP (Access Point) going to the address 192.168.10.1 using a web
-browser.
+browser. Here you will be asked to provision the device with your AWS IoT thing name, AWS region name and the ceritifcate and private key. Make sure you input the exact name that you used when you created a new thing on your AWS IoT Dashboard.
 
-## Step 8
+You can find out more about this on the [Marvell SDK Wiki](https://github.com/marvell-iot/aws_starter_sdk/wiki/Getting%20S
+tarted%20Guide#configuring-the-starter-kit)
+
+## Step 7
 Try it out !
 Shake the Maraca and the changed state should be updated on AWS IoT.
+
+If you run into any issues, you can reach out on [Marvell SDK's Gitter channel](https://gitter.im/marvell-iot/aws_starter_sdk)
