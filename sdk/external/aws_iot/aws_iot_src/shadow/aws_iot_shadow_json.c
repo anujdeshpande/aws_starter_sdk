@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2016 Amazon.com, Inc. or its affiliates. All Rights Reserved.
+ * Copyright 2010-2015 Amazon.com, Inc. or its affiliates. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License").
  * You may not use this file except in compliance with the License.
@@ -18,11 +18,12 @@
 #include <string.h>
 #include <stdbool.h>
 #include <inttypes.h>
-#include <jsmn.h>
 #include "aws_iot_json_utils.h"
 #include "aws_iot_log.h"
 #include "aws_iot_shadow_key.h"
 #include "aws_iot_config.h"
+
+extern char mqttClientID[MAX_SIZE_OF_UNIQUE_CLIENT_ID_BYTES];
 
 static uint32_t clientTokenNum = 0;
 
@@ -202,8 +203,8 @@ IoT_Error_t aws_iot_shadow_add_reported(char *pJsonDocument, size_t maxSizeOfJso
 
 int32_t FillWithClientTokenSize(char *pBufferToBeUpdatedWithClientToken, size_t maxSizeOfJsonDocument) {
 	int32_t snPrintfReturn;
-	snPrintfReturn = snprintf(pBufferToBeUpdatedWithClientToken, maxSizeOfJsonDocument, "%s-%d", AWS_IOT_MQTT_CLIENT_ID,
-			clientTokenNum++);
+	snPrintfReturn = snprintf(pBufferToBeUpdatedWithClientToken, maxSizeOfJsonDocument, "%s-%d", mqttClientID,
+			(unsigned int)clientTokenNum++);
 
 	return snPrintfReturn;
 }
@@ -268,7 +269,7 @@ IoT_Error_t aws_iot_finalize_json_document(char *pJsonDocument, size_t maxSizeOf
 }
 
 void FillWithClientToken(char *pBufferToBeUpdatedWithClientToken) {
-	sprintf(pBufferToBeUpdatedWithClientToken, "%s-%d", AWS_IOT_MQTT_CLIENT_ID, clientTokenNum++);
+	sprintf(pBufferToBeUpdatedWithClientToken, "%s-%d", mqttClientID, (unsigned int)clientTokenNum++);
 }
 
 static IoT_Error_t convertDataToString(char *pStringBuffer, size_t maxSizoStringBuffer, JsonPrimitiveType type,
@@ -382,7 +383,7 @@ bool isReceivedJsonValid(const char *pJsonDocument) {
 	jsmn_init(&shadowJsonParser);
 
 	tokenCount = jsmn_parse(&shadowJsonParser, pJsonDocument, strlen(pJsonDocument), jsonTokenStruct,
-					sizeof(jsonTokenStruct) / sizeof(jsonTokenStruct[0]));
+			sizeof(jsonTokenStruct) / sizeof(jsonTokenStruct[0]));
 
 	if (tokenCount < 0) {
 		WARN("Failed to parse JSON: %d\n", tokenCount);
@@ -403,7 +404,7 @@ bool extractClientToken(const char *pJsonDocument, char *pExtractedClientToken) 
 	jsmntok_t ClientJsonToken;
 
 	tokenCount = jsmn_parse(&shadowJsonParser, pJsonDocument, strlen(pJsonDocument), jsonTokenStruct,
-					sizeof(jsonTokenStruct) / sizeof(jsonTokenStruct[0]));
+			sizeof(jsonTokenStruct) / sizeof(jsonTokenStruct[0]));
 
 	if (tokenCount < 0) {
 		WARN("Failed to parse JSON: %d\n", tokenCount);

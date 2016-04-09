@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2016 Amazon.com, Inc. or its affiliates. All Rights Reserved.
+ * Copyright 2010-2015 Amazon.com, Inc. or its affiliates. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License").
  * You may not use this file except in compliance with the License.
@@ -69,10 +69,16 @@ IoT_Error_t aws_iot_shadow_connect(MQTTClient_t *pClient, ShadowParameters_t *pP
 		return NULL_VALUE_ERROR;
 	}
 
-	ConnectParams.KeepAliveInterval_sec = 10;
+	snprintf(myThingName, MAX_SIZE_OF_THING_NAME, "%s", pParams->pMyThingName );
+	snprintf(mqttClientID, MAX_SIZE_OF_UNIQUE_CLIENT_ID_BYTES, "%s", pParams->pMqttClientId );
+
+	DEBUG("Thing Name %s", myThingName);
+	DEBUG("MQTT Client ID %s", mqttClientID);
+
+	ConnectParams.KeepAliveInterval_sec = 60;
 	ConnectParams.MQTTVersion = MQTT_3_1_1;
-	ConnectParams.mqttCommandTimeout_ms = 2000;
-	ConnectParams.tlsHandshakeTimeout_ms = 10000;
+	ConnectParams.mqttCommandTimeout_ms = 30000;
+	ConnectParams.tlsHandshakeTimeout_ms = 60000;
 	ConnectParams.isCleansession = true;
 	ConnectParams.isSSLHostnameVerify = true;
 	ConnectParams.isWillMsgPresent = false;
@@ -136,6 +142,7 @@ IoT_Error_t aws_iot_shadow_delete(MQTTClient_t *pClient, const char *pThingName,
 	IoT_Error_t ret_val = NONE_ERROR;
 
 	if (!(pClient->isConnected())) {
+
 		return CONNECTION_ERROR;
 	}
 

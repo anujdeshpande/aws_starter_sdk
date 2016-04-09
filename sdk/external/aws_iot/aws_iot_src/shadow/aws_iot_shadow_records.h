@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2016 Amazon.com, Inc. or its affiliates. All Rights Reserved.
+ * Copyright 2010-2015 Amazon.com, Inc. or its affiliates. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License").
  * You may not use this file except in compliance with the License.
@@ -24,6 +24,9 @@
 
 extern uint32_t shadowJsonVersionNum;
 extern bool shadowDiscardOldDeltaFlag;
+
+extern char myThingName[MAX_SIZE_OF_THING_NAME];
+extern char mqttClientID[MAX_SIZE_OF_UNIQUE_CLIENT_ID_BYTES];
 
 void initializeRecords(MQTTClient_t *pClient);
 bool isSubscriptionPresent(const char *pThingName, ShadowActions_t action);

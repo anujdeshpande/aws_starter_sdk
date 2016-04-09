@@ -99,9 +99,12 @@ void tls_close(tls_handle_t *h);
 int iot_tls_init(Network *pNetwork) 
 {
 	pNetwork->my_socket = 0;
+	pNetwork->connect = iot_tls_connect;
 	pNetwork->mqttread = iot_tls_read;
 	pNetwork->mqttwrite = iot_tls_write;
 	pNetwork->disconnect = iot_tls_disconnect;
+	pNetwork->isConnected = iot_tls_is_connected;
+	pNetwork->destroy = iot_tls_destroy;
 	tls_lib_init();
 
 	return 0;
@@ -111,6 +114,13 @@ int Create_TCPSocket(void) {
 	int sockfd;
 	sockfd = socket(AF_INET, SOCK_STREAM, 0);
 	return sockfd;
+}
+
+static void Close_TCPSocket(int *sockfd) {
+	if (-1 == *sockfd)
+		return;
+	close(*sockfd);
+	*sockfd = -1;
 }
 
 IoT_Error_t Connect_TCPSocket(int socket_fd, char *pURLString, int port) {
@@ -136,7 +146,7 @@ IoT_Error_t Connect_TCPSocket(int socket_fd, char *pURLString, int port) {
 	return ret_val;
 }
 
-IoT_Error_t setSocketToNonBlocking( server_fd) {
+IoT_Error_t setSocketToNonBlocking(int server_fd) {
 	net_socket_blocking(server_fd, NET_BLOCKING_OFF);
 	return 0;
 }
@@ -157,6 +167,7 @@ int iot_tls_connect(Network *pNetwork, TLSConnectParams params)
 	ret_val = Connect_TCPSocket(pNetwork->my_socket, params.pDestinationURL,
 				    params.DestinationPort);
 	if (NONE_ERROR != ret_val) {
+		Close_TCPSocket(&pNetwork->my_socket);
 		return ret_val;
 	}
 	tls_cfg.flags = TLS_USE_CLIENT_CERT;
@@ -171,7 +182,8 @@ int iot_tls_connect(Network *pNetwork, TLSConnectParams params)
 	tls_cfg.tls.client.ca_cert_size = strlen(params.pRootCALocation);
 
 	ret_val = tls_session_init(&tls_handle, pNetwork->my_socket, &tls_cfg);
-
+	if (NONE_ERROR != ret_val)
+		Close_TCPSocket(&pNetwork->my_socket);
 	return ret_val;
 }
 
@@ -188,7 +200,9 @@ int iot_tls_read(Network *pNetwork, unsigned char *pMsg, int len, int timeout_ms
 		   (void *)&timeout_ms, sizeof(timeout_ms));
 
 	do {
-		val = tls_recv(tls_handle, pMsg + recv_len, len - recv_len);
+		if (tls_handle)
+			val = tls_recv(tls_handle, pMsg + recv_len,
+				       len - recv_len);
 		if (val < 1)
 			break;
 		recv_len += val;
@@ -199,17 +213,26 @@ int iot_tls_read(Network *pNetwork, unsigned char *pMsg, int len, int timeout_ms
 
 int iot_tls_write(Network *pNetwork, unsigned char *pMsg, int len, int timeout_ms) 
 {
-	return tls_send(tls_handle, pMsg, len);
+	if (tls_handle)
+		return tls_send(tls_handle, pMsg, len);
+	return GENERIC_ERROR;
 }
 
 void iot_tls_disconnect(Network *pNetwork) 
 {
-	tls_close(&tls_handle);
-	close(pNetwork->my_socket);
+	if (tls_handle)
+		tls_close(&tls_handle);
+	Close_TCPSocket(&pNetwork->my_socket);
+
 	return;
 }
 
 int iot_tls_destroy(Network *pNetwork)
 {
 	return 0;
+}
+
+int iot_tls_is_connected(Network *pNetwork)
+{
+	return 1;
 }

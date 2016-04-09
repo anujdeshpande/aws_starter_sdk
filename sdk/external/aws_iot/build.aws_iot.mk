@@ -1,4 +1,4 @@
-# Copyright (C) 2008-2016, Marvell International Ltd.
+# Copyright (C) 2008-2015, Marvell International Ltd.
 # All Rights Reserved.
 
 libs-y += libaws_iot
@@ -8,10 +8,6 @@ libaws_iot-objs-y := aws_mqtt_embedded_client_lib/MQTTPacket/src/MQTTSerializePu
 	aws_mqtt_embedded_client_lib/MQTTPacket/src/MQTTConnectClient.c \
 	aws_mqtt_embedded_client_lib/MQTTPacket/src/MQTTPacket.c \
 	aws_mqtt_embedded_client_lib/MQTTPacket/src/MQTTSubscribeClient.c \
-	aws_mqtt_embedded_client_lib/MQTTPacket/src/MQTTFormat.c \
-	aws_mqtt_embedded_client_lib/MQTTPacket/src/MQTTSubscribeServer.c \
-	aws_mqtt_embedded_client_lib/MQTTPacket/src/MQTTConnectServer.c \
-	aws_mqtt_embedded_client_lib/MQTTPacket/src/MQTTUnsubscribeServer.c \
 	aws_mqtt_embedded_client_lib/MQTTPacket/src/MQTTDeserializePublish.c \
 	aws_mqtt_embedded_client_lib/MQTTClient-C/src/MQTTClient.c \
 	aws_iot_src/protocol/mqtt/aws_iot_embedded_client_wrapper/aws_iot_mqtt_embedded_client_wrapper.c \

@@ -91,6 +91,7 @@ struct MMA7660_ACC_DATA {
 	struct MMA7660_LOOKUP z;
 };
 
-int acc_sensor_event_register(void);
+void MMA7660_init(mdev_t *mdev_handle);
+bool MMA7660_getXYZ(int8_t *x,int8_t *y,int8_t *z);
 
 #endif /* __SENSOR_ACC_DRV_H__ */

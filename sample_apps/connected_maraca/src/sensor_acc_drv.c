@@ -39,15 +39,15 @@
 #include <mdev_pinmux.h>
 #include <lowlevel_drivers.h>
 #include <math.h>
-#include "sensor_drv.h"
 #include <sensor_acc_drv.h>
+
+
 
 #include <wm_os.h>
 #include <mdev_i2c.h>
 
 /*------------------Macro Definitions ------------------*/
 #define BUF_LEN		16
-#define I2C_SLV_ADDR	MMA7660_ADDR
 #define I2X_WR_DLY	50
 #define MMA7660TIMEOUT	500	/* us */
 
@@ -146,8 +146,9 @@ void MMA7660_setSampleRate(uint8_t rate) {
 	MMA7660_write(MMA7660_SR,rate);
 }
 
-void MMA7660_init()
+void MMA7660_init(mdev_t *i2c_handle)
 {
+	i2c0 = i2c_handle;
 	MMA7660_initAccelTable();
 	MMA7660_setMode(MMA7660_STAND_BY);
 	MMA7660_setSampleRate(AUTO_SLEEP_64);
@@ -186,61 +187,3 @@ bool MMA7660_getXYZ(int8_t *x,int8_t *y,int8_t *z)
 	return 1;
 }
 
-/* Basic Sensor IO initialization to be done here
-
-	This function will be called only once during sensor registration
- */
-int acc_sensor_init(struct sensor_info *curevent)
-{
-	/* Initialize I2C Driver */
-	/* using IO_04:SDA and IO_05 SCL (configured in board file */
-	i2c_drv_init(I2C0_PORT);
-
-	/* I2C0 is configured as master */
-	i2c0 = i2c_drv_open(I2C0_PORT, I2C_SLAVEADR(I2C_SLV_ADDR));
-
-	/* Initialize Acc Sensor H/W */
-	MMA7660_init();
-	return 0;
-}
-
-/* Sensor input from IO should be read here and to be passed
-	in curevent->event_curr_value variable to the upper layer
-
-	This function will be called periodically by the upper layer
-	hence you can poll your input here, and there is no need of
-	callback IO interrupt, this is very usefull to sense variable
-	data from analog sensors connected to ADC lines. Event this can
-	be used to digital IO scanning and polling
-*/
-int MMA7660acc_sensor_input_scan(struct sensor_info *curevent)
-{
-	int8_t x, y, z;
-	
-	if (MMA7660_getXYZ(&x, &y, &z)) {
-		dbg("%s \"xval\":%d,\"yval\":%d,\"zval\":%d",
-			__FUNCTION__, x, y, z);
-		if( abs(prev_x-x) > 2 || abs(prev_y-y)>2 || abs(prev_z-z)>2) {
-		  /* Report newly generated value to the Sensor layer */
-		sprintf(curevent->event_curr_value, "\"xval\": %d,\"yval\":%d,\"zval\":%d",
-			x, y, z);
-		prev_x=x;
-		prev_y=y;
-		prev_z=z;
-		return 0;
-		}
-		return -1;
-	} else
-		return -1;
-}
-
-struct sensor_info event_MMA7660acc_sensor = {
-	.property = "",
-	.init = acc_sensor_init,
-	.read = MMA7660acc_sensor_input_scan,
-};
-
-int acc_sensor_event_register(void)
-{
-	return sensor_event_register(&event_MMA7660acc_sensor);
-}

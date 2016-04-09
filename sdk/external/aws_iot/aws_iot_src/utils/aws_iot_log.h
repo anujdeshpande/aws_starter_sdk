@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2016 Amazon.com, Inc. or its affiliates. All Rights Reserved.
+ * Copyright 2010-2015 Amazon.com, Inc. or its affiliates. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License").
  * You may not use this file except in compliance with the License.
@@ -30,7 +30,7 @@
 
 #include <stdio.h>
 #include <stdlib.h>
-#include <wmstdio.h>
+
 /**
  * @brief Debug level logging macro.
  *
@@ -39,9 +39,9 @@
 #ifdef IOT_DEBUG
 #define DEBUG(...)    \
     {\
-    wmprintf("DEBUG:   %s L#%d ", __PRETTY_FUNCTION__, __LINE__);  \
-    wmprintf(__VA_ARGS__); \
-    wmprintf("\n"); \
+    printf("DEBUG:   %s L#%d ", __PRETTY_FUNCTION__, __LINE__);  \
+    printf(__VA_ARGS__); \
+    printf("\n"); \
     }
 #else
 #define DEBUG(...)
@@ -55,8 +55,8 @@
 #ifdef IOT_INFO
 #define INFO(...)    \
     {\
-    wmprintf(__VA_ARGS__); \
-    wmprintf("\n"); \
+    printf(__VA_ARGS__); \
+    printf("\n"); \
     }
 #else
 #define INFO(...)
@@ -70,9 +70,9 @@
 #ifdef IOT_WARN
 #define WARN(...)   \
     { \
-    wmprintf("WARN:  %s L#%d ", __PRETTY_FUNCTION__, __LINE__);  \
-    wmprintf(__VA_ARGS__); \
-    wmprintf("\n"); \
+    printf("WARN:  %s L#%d ", __PRETTY_FUNCTION__, __LINE__);  \
+    printf(__VA_ARGS__); \
+    printf("\n"); \
     }
 #else
 #define WARN(...)
@@ -86,9 +86,9 @@
 #ifdef IOT_ERROR
 #define ERROR(...)  \
     { \
-    wmprintf("ERROR: %s L#%d ", __PRETTY_FUNCTION__, __LINE__); \
-    wmprintf(__VA_ARGS__); \
-    wmprintf("\n"); \
+    printf("ERROR: %s L#%d ", __PRETTY_FUNCTION__, __LINE__); \
+    printf(__VA_ARGS__); \
+    printf("\n"); \
     }
 #else
 #define ERROR(...)

@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2016 Amazon.com, Inc. or its affiliates. All Rights Reserved.
+ * Copyright 2010-2015 Amazon.com, Inc. or its affiliates. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License").
  * You may not use this file except in compliance with the License.
@@ -31,19 +31,19 @@ char expired(Timer* timer) {
 
 void countdown_ms(Timer* timer, unsigned int timeout) {
 	timer->timeout = timeout;
-	timer->start_timestamp = os_get_timestamp();
+	timer->start_timestamp = os_ticks_get();
 }
 
 void countdown(Timer* timer, unsigned int timeout) {
 	/* converting timeout in milliseconds */
 	timer->timeout = timeout * 1000;
-	timer->start_timestamp = os_get_timestamp();
+	timer->start_timestamp = os_ticks_get();
 }
 
 int left_ms(Timer* timer) {
-	uint32_t current_timestamp = os_get_timestamp();
-	int time_diff_ms = (int)((current_timestamp - timer->start_timestamp)/1000);
-	return (timer->timeout - time_diff_ms);  
+	unsigned current_timestamp = os_ticks_get();
+	int time_diff_ms = current_timestamp - timer->start_timestamp;
+	return timer->timeout - time_diff_ms;
 }
 
 void InitTimer(Timer* timer) {

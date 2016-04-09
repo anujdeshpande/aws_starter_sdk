@@ -3,7 +3,7 @@
 #
 
 exec-y += connected_maraca
-connected_maraca-objs-y := src/main.c
+connected_maraca-objs-y := src/main.c src/sensor_acc_drv.c
 connected_maraca-cflags-y := -I$(d)/src -DAPPCONFIG_DEBUG_ENABLE=1
 
 # Applications could also define custom linker files if required using following:

@@ -40,8 +40,7 @@
  *
  */
 typedef struct {
-	os_timer_t os_timer;
-	uint32_t start_timestamp;
+	unsigned start_timestamp;
 	/* in milliseconds */
 	int timeout;
 } Timer;
