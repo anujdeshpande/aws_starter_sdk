@@ -166,7 +166,7 @@ int aws_publish_property_state(ShadowParameters_t *sp, int8_t x, int8_t y,
 	int ret = WM_SUCCESS;
 
 	MQTTPublishParams cmaraca;
-	snprintf(buf_out, BUFSIZE, "{\"state\":  {\"reported\":{\"device_id\": \"%s\",\"time\":\"\",\"device\":\"marvelliot\",\"sensors\":[{\"telemetryData\": {\"xval\": %d,\"yval\":%d,\"zval\":%d}}]}}}",DEVICE_ID, x, y, z);
+	snprintf(buf_out, BUFSIZE, "{\"device_id\": \"%s\",\"time\":\"\",\"device\":\"marvelliot\",\"sensors\":[{\"telemetryData\": {\"xval\": %d,\"yval\":%d,\"zval\":%d}}]}",DEVICE_ID, x, y, z);
 	
 	memset(&cmaraca, 0, sizeof(cmaraca));   
 	cmaraca.pTopic = "connected-maraca";
