@@ -37,6 +37,11 @@ python sdk/tools/OpenOCD/flash.py -f aws_starter_sdk-2015_12_08.blob
 ```
 
 ## Step 3 - Compile Maraca sample code
+You will need to edit the source code to enter your Device ID. This is the same
+ID that you will use while configuring your [CloudFormation Stack](http://iot-hackseries.s3-website-us-west-2.amazonaws.com/aws-launch-cfn.html)
+```
+#define DEVICE_ID                "<INSERT_YOUR_DEVICE_ID>"
+```
 Compile the Maraca application to create a binary called connected_maraca.bin
 ```
 make APP=sample_apps/connected_maraca/
