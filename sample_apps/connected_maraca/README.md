@@ -21,7 +21,7 @@ The sensor has 4 pins -
 | SCL | IO_05 | Blue
 
 Here's a picture of the connections :
-![Connections](./screenshots/Wires.jpg)
+![Connections](./Wires.jpg)
 
 ## Step 2 - Get latest blob (includes wifi firmware and bootloader)
 Flash the latest blob on the Marvell board.
